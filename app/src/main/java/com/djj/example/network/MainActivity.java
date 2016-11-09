@@ -28,8 +28,6 @@ public class MainActivity extends AppCompatActivity {
     private EditText editText;
     private EditText multiEditText;
     private Button button,button1;
-    //private Socket socket=null;
-   // private ServerSocket server;
     private DataInputStream in;
     private String inputdate;
     private String ip;
