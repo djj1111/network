@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -33,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     private String inputdate;
     private String ip;
     private DataOutputStream out;
-    //private ServerSocket server;
     private int port=12797;
     private Uri imageFileUri;
     private File file;
@@ -196,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
         return file;
     }
     //生成输出文件路径
+    @Nullable
     private String getFilePath(File mediaStorageDir, int fileType){
         String timeStamp =new SimpleDateFormat("yyyyMMdd_HHmmss")
                 .format(new Date());
