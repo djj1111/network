@@ -26,7 +26,7 @@
         android:layout_height="40dp"
         android:inputType="textNoSuggestions"
         android:id="@+id/editTextip"
-        android:text="10.0.0.43"
+        android:text="10.0.0.2"
         android:gravity="top"
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"

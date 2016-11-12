@@ -13,25 +13,21 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import com.djj1111.android.filetools.SDCardScanner;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static com.djj.example.network.R.id.editText;
+import static com.djj.example.network.R.id.editTextip;
 
 
 public class MainActivity extends AppCompatActivity {
     private static final int TYPE_FILE_IMAGE=-11,TYPE_FILE_VEDIO=-12,
             SYSTEM_CAMERA_REQUESTCODE=16,NETWORK_REQUESTCODE=17,
             UPDATESUCCESS=-21,UPDATEFAULT=-22;
-    private TextView textView;
-    private EditText editText;
-    private EditText multiEditText;
-    private Button button,button1;
-    private DataInputStream in;
-    private String inputdate;
-    private String ip;
-    private DataOutputStream out;
+    private EditText editTextIp, editTextMessage;
     private int port=12797;
     private Uri imageFileUri;
     private File file;
@@ -89,11 +85,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textView=(TextView)findViewById(R.id.textView);
-        editText=(EditText)findViewById(R.id.editTextip);
-        multiEditText=(EditText)findViewById(R.id.editText);
-        button=(Button)findViewById(R.id.button);
-        button1=(Button)findViewById(R.id.button1);
+        TextView textView = (TextView) findViewById(R.id.textView);
+        editTextIp = (EditText) findViewById(editTextip);
+        editTextMessage = (EditText) findViewById(editText);
+        Button button = (Button) findViewById(R.id.button);
+        Button button1 = (Button) findViewById(R.id.button1);
+        String allpath = "";
+        for (String s : SDCardScanner.getExtSDCardPaths()) allpath += s + "\n";
+        textView.setText(allpath);
         /*new Thread(new Runnable() {
             @Override
             public void run() {
@@ -218,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void network(){
-        String ip=editText.getText().toString();
+        String ip = editTextIp.getText().toString();
         if (!hasphoto) {
             Toast.makeText(MainActivity.this,"没有照片，请先拍照！",Toast.LENGTH_LONG).show();
             return;
