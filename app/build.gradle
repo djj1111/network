@@ -33,5 +33,6 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile(name: 'android.filetools', ext: 'aar')
+    compile 'com.github.siyamed:android-shape-imageview:0.9.+@aar'
     testCompile 'junit:junit:4.12'
 }
