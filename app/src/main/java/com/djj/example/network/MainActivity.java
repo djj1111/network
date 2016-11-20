@@ -2,7 +2,6 @@ package com.djj.example.network;
 
 import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,10 +17,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.djj1111.android.filetools.SDCardScanner;
-
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 
 import static com.djj.example.network.R.id.editText;
 import static com.djj.example.network.R.id.editTextip;
@@ -34,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
     private EditText editTextIp, editTextMessage;
     private int port=12797;
     private Uri imageFileUri;
-    private File file;
-    private boolean hasfiles = false;
+    private ArrayList<File> filelist = new ArrayList<>();
+    //private boolean hasfiles = false;
 
 
 
@@ -95,9 +96,9 @@ public class MainActivity extends AppCompatActivity {
         Button button = (Button) findViewById(R.id.button);
         Button button1 = (Button) findViewById(R.id.button1);
         Button button2 = (Button) findViewById(R.id.button2);
-        String allpath = "";
-        for (String s : SDCardScanner.getExtSDCardPaths()) allpath += s + "\n";
-        textView.setText(allpath);
+        /*String extrootpath = "";
+        for (String s : SDCardScanner.getExtSDCardPaths()) extrootpath += s + "\n";
+        textView.setText(extrootpath);*/
         /*new Thread(new Runnable() {
             @Override
             public void run() {
@@ -144,34 +145,35 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //if (v.getId()==R.id.button) senttext();
-                //senttext();
                 getphoto();
-                //network();
             }
         });
         button1.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v) {
-                //dotest();
                 update();
             }
         });
         button2.setOnTouchListener(new Button.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    getaudio(getOutFile(TYPE_FILE_AUDIO));
+                    audiofile = getOutFile(TYPE_FILE_AUDIO);
+                    getaudio(audiofile);
                 }
                 if (event.getAction() == MotionEvent.ACTION_UP) {
                     myRecorder.stop();
                     myRecorder.release();
+                    filelist.add(audiofile);
                 }
                 return true;
             }
         });
 
     }
+
+    private File audiofile;
 
     /*public static boolean isNumeric(String str){
         for(int i=str.length();--i>=0;){
@@ -205,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        file = new File(getFilePath(mediaStorageDir,fileType));
+        File file = new File(getFilePath(mediaStorageDir, fileType));
 
         return file;
     }
@@ -214,16 +216,16 @@ public class MainActivity extends AppCompatActivity {
     private String getFilePath(File mediaStorageDir, int fileType){
         TelephonyManager telephonyManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
         String imei = telephonyManager.getDeviceId();
-        /*String timeStamp =new SimpleDateFormat("yyyyMMdd_HHmmss")
-                .format(new Date());*/
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
+                .format(new Date());
         //file.separator 目录分隔符
         String filePath = mediaStorageDir.getPath() + File.separator;
         if (fileType == TYPE_FILE_IMAGE){
-            filePath += ("IMG_" + imei + ".jpg");
+            filePath += ("IMG_" + imei + "_" + timeStamp + ".jpg");
         }else if (fileType == TYPE_FILE_VEDIO){
-            filePath += ("VIDEO_" + imei + ".mp4");
+            filePath += ("VIDEO_" + imei + "_" + timeStamp + ".mp4");
         } else if (fileType == TYPE_FILE_AUDIO) {
-            filePath += ("AUDIO_" + imei + ".aac");
+            filePath += ("AUDIO_" + imei + "_" + timeStamp + ".aac");
         }else{
             return null;
         }
@@ -234,26 +236,26 @@ public class MainActivity extends AppCompatActivity {
         return Uri.fromFile(getOutFile(fileType));
     }
 
+    private String photofilepath;
     private void getphoto() {
         Intent intent = new Intent();
-        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE_SECURE);
+        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
         imageFileUri = getOutFileUri(TYPE_FILE_IMAGE);//得到一个File Uri
+        photofilepath = imageFileUri.getPath();
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri);
         startActivityForResult(intent, SYSTEM_CAMERA_REQUESTCODE);
     }
 
-    private MediaPlayer myPlayer;
     private MediaRecorder myRecorder;
 
     private void getaudio(File file) {
-        myPlayer = new MediaPlayer();
         myRecorder = new MediaRecorder();
         // 从麦克风源进行录音
         myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         // 设置输出格式
-        myRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        myRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
         // 设置编码格式
-        myRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC);
+        myRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
 
         try {//file.createNewFile();
             myRecorder.setOutputFile(file.getAbsolutePath());
@@ -269,14 +271,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void update() {
         String ip = editTextIp.getText().toString();
-        if (!file.exists()) {
+        if (filelist.size() == 0) {
             Toast.makeText(MainActivity.this, "没有文件，请先拍照或录音！", Toast.LENGTH_LONG).show();
             return;
         }
+        ArrayList<String> filepath = new ArrayList<>();
+        for (File f : filelist) filepath.add(f.getPath());
+        Bundle bundle = new Bundle();
+        bundle.putString("ipaddress", ip);
+        bundle.putInt("port", port);
+        bundle.putStringArrayList("filepath", filepath);
         Intent intent=new Intent();
-        intent.putExtra("ipaddress",ip);
-        intent.putExtra("port",port);
-        intent.putExtra("filepath",file.getPath());
+        intent.putExtra("bundle", bundle);
         intent.setClass(MainActivity.this,LoadingActivity.class);//跳转到加载界面
         startActivityForResult(intent,NETWORK_REQUESTCODE);
     }
@@ -284,24 +290,64 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        /*if (requestCode==SYSTEM_CAMERA_REQUESTCODE)
+        if (requestCode == SYSTEM_CAMERA_REQUESTCODE)
             if (resultCode==RESULT_OK){
-                Toast.makeText(MainActivity.this,"拍照成功",Toast.LENGTH_SHORT).show();
-                hasfiles=true;
+                //Toast.makeText(MainActivity.this,"拍照成功",Toast.LENGTH_SHORT).show();
+                File file = new File(photofilepath);
+                filelist.add(file);
             }else {
-                Toast.makeText(MainActivity.this,"拍照不成功",Toast.LENGTH_SHORT).show();
-                hasfiles=false;
-            }*/
+                //Toast.makeText(MainActivity.this,"拍照不成功",Toast.LENGTH_SHORT).show();
+                photofilepath = null;
+            }
         if (requestCode==NETWORK_REQUESTCODE)
             if (resultCode==UPDATESUCCESS){
-                if (file.delete()){
-                    Toast.makeText(MainActivity.this, "临时文件成功删除", Toast.LENGTH_SHORT).show();
-                    hasfiles = false;
-                } else {
-                    Toast.makeText(MainActivity.this, "临时文件未能删除，文件路径：" + file.getPath(), Toast.LENGTH_SHORT).show();
+                Iterator iter = filelist.iterator();
+                //int filesize=filepath.size();
+                while (iter.hasNext()) {
+                    File file = (File) iter.next();
+                    if (file.delete()) {
+                        //
+                        //hasfiles = false;
+                        iter.remove();
+                    } else {
+                        Toast.makeText(MainActivity.this, "临时文件未能删除，文件路径：" + file.getPath(), Toast.LENGTH_SHORT).show();
+                    }
+
                 }
+                Toast.makeText(MainActivity.this, "临时文件成功删除", Toast.LENGTH_SHORT).show();
+
             }else {
-                Toast.makeText(MainActivity.this,"上传不成功",Toast.LENGTH_SHORT).show();
+                Bundle bundle = data.getBundleExtra("bundle");
+                ArrayList<String> filepath = bundle.getStringArrayList("filepath");
+                Iterator iter = filelist.iterator();
+                while (iter.hasNext()) {
+                    File file = (File) iter.next();
+                    String filepathone = file.getPath();
+                    boolean del_flag = true;
+                    for (String filep : filepath) {
+                        if (filepathone.equals(filep)) {
+                            del_flag = false;
+                            break;
+                        }
+                    }
+                    if (del_flag) {
+                        if (file.delete()) {
+                            //
+                            //hasfiles = false;
+                            iter.remove();
+                        } else {
+                            Toast.makeText(MainActivity.this, "临时文件未能删除，文件路径：" + file.getPath(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    /*if (!file.delete()){
+                        //
+                        //hasfiles = false;
+                        Toast.makeText(MainActivity.this, "临时文件未能删除，文件路径：" + file.getPath(), Toast.LENGTH_SHORT).show()
+                    }*/
+
+                }
+                Toast.makeText(MainActivity.this, "上传不完全成功,部分文件未删除", Toast.LENGTH_SHORT).show();
             }
 
 
