@@ -100,7 +100,7 @@ public class LoadingActivity extends Activity {
                                 @Override
                                 public void run() {
                                     String[] s = filepathone.split("/");
-                                    textView.setText("正在上传\n" + s[s.length - 1]);
+                                    textView.setText(s[s.length - 1]);
                                 }
                             });
                             File file = new File(filepathone);
