@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
             SYSTEM_CAMERA_REQUESTCODE=16,NETWORK_REQUESTCODE=17,
             UPDATESUCCESS=-21,UPDATEFAULT=-22;
     private EditText editTextIp, editTextMessage;
-    private int port=12797;
+    private int port = 12702;
     private Uri imageFileUri;
     private ArrayList<File> filelist = new ArrayList<>();
     //private boolean hasfiles = false;
