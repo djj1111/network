@@ -58,6 +58,21 @@ public class LoadingActivity extends Activity {
         //System.out.println("按下了back键   onBackPressed()");
     }
 
+    /*public void close(int i){
+        if (i==1) {
+            LoadingActivity.this.setResult(UPDATESUCCESS);
+            LoadingActivity.this.finish();
+        }
+        if (i==-1) {
+            Intent intent = new Intent();
+            Bundle bundle = new Bundle();
+            bundle.putStringArrayList("filepath", filepath);
+            intent.putExtra("bundle", bundle);
+            LoadingActivity.this.setResult(UPDATEFAULT, intent);
+            LoadingActivity.this.finish();
+        }
+    }*/
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +91,7 @@ public class LoadingActivity extends Activity {
                 try {
                     Socket socket = new Socket();
                     socket.connect((new InetSocketAddress(ip, port)), 3000);
-                    socket.setSoTimeout(10000);
+                    socket.setSoTimeout(100000);
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                     DataInputStream in = new DataInputStream(socket.getInputStream());
                     final String s=in.readUTF();
@@ -193,6 +208,7 @@ public class LoadingActivity extends Activity {
                             Toast.makeText(LoadingActivity.this, "未连接到服务器，请重试", Toast.LENGTH_SHORT).show();
                         }
                     });
+                    mHandler.sendEmptyMessage(-1);
                 }
 
 
