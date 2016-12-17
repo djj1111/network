@@ -32,7 +32,7 @@ public class LoadingActivity extends Activity {
     private int port;
     private TextView textView;
     private static final int FTEXT = -11, FPHOTO = -12, FUPDATE=-13,FFINISHED = -14,
-            UPDATESUCCESS=-21,UPDATEFAULT=-22,NETWORKSTART=-41;
+            UPDATESUCCESS = -21, UPDATEFAULT = -22, DATEBASEERROR = -23, NETWORKSTART = -41;
     private  Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -76,7 +76,7 @@ public class LoadingActivity extends Activity {
                 try {
                     Socket socket = new Socket();
                     socket.connect((new InetSocketAddress(ip, port)), 3000);
-                    socket.setSoTimeout(5000);
+                    socket.setSoTimeout(10000);
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                     DataInputStream in = new DataInputStream(socket.getInputStream());
                     final String s=in.readUTF();
@@ -117,9 +117,35 @@ public class LoadingActivity extends Activity {
                             filein.close();
                             out.writeInt(FUPDATE);
                             out.flush();
-                            if (in.readInt() == UPDATESUCCESS) {
+                            int update_result = in.readInt();
+                            if (update_result == UPDATESUCCESS) {
                                 iter.remove();
+                            } else if (update_result == DATEBASEERROR) {
+                                LoadingActivity.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(LoadingActivity.this, "数据库连接错误", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                                break;
+                            } else if (update_result == UPDATEFAULT) {
+                                LoadingActivity.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(LoadingActivity.this, "数据库更新错误", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                                break;
+                            } else {
+                                LoadingActivity.this.runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(LoadingActivity.this, "未知错误", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                                break;
                             }
+
                         }
                         out.writeInt(FFINISHED);
                         out.flush();
@@ -150,21 +176,23 @@ public class LoadingActivity extends Activity {
                         }
                     });
                     mHandler.sendEmptyMessage(-1);
-                }
-                catch (IOException e) {
-                    final String err;
-                    if (e instanceof SocketException) {
-                        err = "网络超时，请重试";
-                    } else {
-                        err = "未找到服务器，请重试";
-                    }
+                } catch (SocketException e) {
+                    e.printStackTrace();
                     LoadingActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(LoadingActivity.this, err, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoadingActivity.this, "网络超时，请重试", Toast.LENGTH_SHORT).show();
                         }
                     });
                     mHandler.sendEmptyMessage(-1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    LoadingActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(LoadingActivity.this, "未连接到服务器，请重试", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
 
 
